@@ -1,18 +1,19 @@
 from lexer import simple_lexer
 from parser import SyntaxParser
+from semantic_checker import SemanticChecker
+from codegen import CodeGenerator
 
 if __name__ == "__main__":
-   
-   
-    sample_code = ["i32", "x", "{", "10", "}", "y", "=", "x", "+", "5", "return", "y"]
+    code = ["i64", "a", "{", "10", "}", "bool", "b", "{", "true", "}", "return", "a"]
 
-    tokens = simple_lexer(sample_code)
+    tokens = simple_lexer(code)
     parser = SyntaxParser(tokens)
-
     program = parser.parse_program()
-    print("\nAST!")
-    print(program)
 
-    
-    program.visit()
-    print(" AST!")
+    print(" AST ")
+    sema = SemanticChecker()
+    program.accept(sema)
+
+    print("")
+    codegen = CodeGenerator()
+    program.accept(codegen)

@@ -3,9 +3,12 @@ from typing import List
 from lexer import TokenKind
 
 
+
 class ASTNode:
-    def visit(self):
+    def accept(self, visitor):
         raise NotImplementedError
+
+
 
 
 @dataclass
@@ -21,15 +24,15 @@ class FactorNode(ExprNode):
 @dataclass
 class IDNode(FactorNode):
     name: str
-    def visit(self):
-        assert self.name, "Empty identifier"
+    def accept(self, visitor):
+        return visitor.visitID(self)
 
 
 @dataclass
 class NumberNode(FactorNode):
     value: int
-    def visit(self):
-        pass
+    def accept(self, visitor):
+        return visitor.visitNumber(self)
 
 
 @dataclass
@@ -37,10 +40,10 @@ class BinaryOpNode(ExprNode):
     op: TokenKind
     left: ExprNode
     right: ExprNode
-    def visit(self):
-        self.left.visit()
-        self.right.visit()
-        assert self.op in (TokenKind.PLUS, TokenKind.MINUS, TokenKind.MUL)
+    def accept(self, visitor):
+        return visitor.visitBinaryOp(self)
+
+
 
 
 class StmtNode(ASTNode):
@@ -51,33 +54,40 @@ class StmtNode(ASTNode):
 class DeclNode(StmtNode):
     id_node: IDNode
     expr: ExprNode
-    is_mut: bool
-    def visit(self):
-        self.id_node.visit()
-        self.expr.visit()
+    is_mut: bool = False
+    var_type: str = None
+
+    def accept(self, visitor):
+        return visitor.visitDecl(self)
 
 
 @dataclass
 class AssignNode(StmtNode):
     id_node: IDNode
     expr: ExprNode
-    def visit(self):
-        self.id_node.visit()
-        self.expr.visit()
+    def accept(self, visitor):
+        return visitor.visitAssign(self)
 
 
 @dataclass
 class ReturnNode(ASTNode):
     expr: ExprNode
-    def visit(self):
-        self.expr.visit()
+    def accept(self, visitor):
+        return visitor.visitReturn(self)
+
+
 
 
 @dataclass
 class ProgramNode(ASTNode):
     stmts: List[StmtNode]
     ret: ReturnNode
-    def visit(self):
-        for s in self.stmts:
-            s.visit()
-        self.ret.visit()
+    def accept(self, visitor):
+        return visitor.visitProgram(self)
+    
+
+@dataclass
+class BoolNode(FactorNode):
+    value: bool
+    def accept(self, visitor):
+        return visitor.visitBool(self)

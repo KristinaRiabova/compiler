@@ -1,20 +1,36 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import List
+from typing import List, Optional
 
 
 class TokenKind(Enum):
+
     KW_I32 = auto()
+    KW_I64 = auto()
+    KW_BOOL = auto()
     KW_MUT = auto()
     KW_RETURN = auto()
+
+
+    TRUE = auto()
+    FALSE = auto()
+
+
     ID = auto()
     NUMBER = auto()
+
+
     LBRACE = auto()
     RBRACE = auto()
-    EQ = auto()
+
+
+    EQEQ = auto()     
+    NEQ = auto()     
+    ASSIGN = auto()  
     PLUS = auto()
     MINUS = auto()
     MUL = auto()
+
     EOF = auto()
 
 
@@ -23,15 +39,25 @@ class Token:
     kind: TokenKind
     text: str
 
+    def __repr__(self):
+        return f"Token({self.kind.name}, '{self.text}')"
+
 
 def simple_lexer(source_tokens: List[str]) -> List[Token]:
+
     mapping = {
         "i32": TokenKind.KW_I32,
+        "i64": TokenKind.KW_I64,
+        "bool": TokenKind.KW_BOOL,
         "mut": TokenKind.KW_MUT,
         "return": TokenKind.KW_RETURN,
+        "true": TokenKind.TRUE,
+        "false": TokenKind.FALSE,
         "{": TokenKind.LBRACE,
         "}": TokenKind.RBRACE,
-        "=": TokenKind.EQ,
+        "==": TokenKind.EQEQ,
+        "!=": TokenKind.NEQ,
+        "=": TokenKind.ASSIGN,
         "+": TokenKind.PLUS,
         "-": TokenKind.MINUS,
         "*": TokenKind.MUL,
@@ -44,6 +70,7 @@ def simple_lexer(source_tokens: List[str]) -> List[Token]:
         elif s.isidentifier():
             tokens.append(Token(TokenKind.ID, s))
         else:
+            
             try:
                 int(s)
                 tokens.append(Token(TokenKind.NUMBER, s))
