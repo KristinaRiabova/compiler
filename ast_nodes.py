@@ -1,13 +1,11 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 from lexer import TokenKind
-
 
 
 class ASTNode:
     def accept(self, visitor):
         raise NotImplementedError
-
 
 
 
@@ -36,6 +34,20 @@ class NumberNode(FactorNode):
 
 
 @dataclass
+class BoolNode(FactorNode):
+    value: bool
+    def accept(self, visitor):
+        return visitor.visitBool(self)
+
+
+@dataclass
+class NotNode(ExprNode):
+    expr: ExprNode
+    def accept(self, visitor):
+        return visitor.visitNot(self)
+
+
+@dataclass
 class BinaryOpNode(ExprNode):
     op: TokenKind
     left: ExprNode
@@ -44,7 +56,7 @@ class BinaryOpNode(ExprNode):
         return visitor.visitBinaryOp(self)
 
 
-
+# ============ Statements / Blocks / Program ============
 
 class StmtNode(ASTNode):
     pass
@@ -56,7 +68,6 @@ class DeclNode(StmtNode):
     expr: ExprNode
     is_mut: bool = False
     var_type: str = None
-
     def accept(self, visitor):
         return visitor.visitDecl(self)
 
@@ -76,6 +87,21 @@ class ReturnNode(ASTNode):
         return visitor.visitReturn(self)
 
 
+@dataclass
+class CodeBlockNode(ASTNode):
+    stmts: List[StmtNode]
+    ret: Optional[ReturnNode] = None
+    def accept(self, visitor):
+        return visitor.visitCodeBlock(self)
+
+
+@dataclass
+class IfNode(StmtNode):
+    condition: ExprNode
+    then_block: CodeBlockNode
+    else_block: Optional[CodeBlockNode] = None
+    def accept(self, visitor):
+        return visitor.visitIf(self)
 
 
 @dataclass
@@ -84,10 +110,3 @@ class ProgramNode(ASTNode):
     ret: ReturnNode
     def accept(self, visitor):
         return visitor.visitProgram(self)
-    
-
-@dataclass
-class BoolNode(FactorNode):
-    value: bool
-    def accept(self, visitor):
-        return visitor.visitBool(self)

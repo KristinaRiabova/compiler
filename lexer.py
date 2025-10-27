@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import List, Optional
+from typing import List
 
 
 class TokenKind(Enum):
@@ -10,26 +10,25 @@ class TokenKind(Enum):
     KW_BOOL = auto()
     KW_MUT = auto()
     KW_RETURN = auto()
+    KW_IF = auto()
+    KW_ELSE = auto()
 
-
+    
     TRUE = auto()
     FALSE = auto()
-
-
     ID = auto()
     NUMBER = auto()
 
 
     LBRACE = auto()
     RBRACE = auto()
-
-
-    EQEQ = auto()     
-    NEQ = auto()     
-    ASSIGN = auto()  
+    ASSIGN = auto()
     PLUS = auto()
     MINUS = auto()
     MUL = auto()
+    EQEQ = auto()
+    NOTEQ = auto()
+    NOT = auto()
 
     EOF = auto()
 
@@ -43,24 +42,33 @@ class Token:
         return f"Token({self.kind.name}, '{self.text}')"
 
 
-def simple_lexer(source_tokens: List[str]) -> List[Token]:
-
+def simple_lexer(source_tokens: List[str]) -> List['Token']:
+    """
+    Extremely simple lexer that expects a pre-tokenized list of lexemes.
+    Suitable for our educational compiler pipeline.
+    """
     mapping = {
+       
         "i32": TokenKind.KW_I32,
         "i64": TokenKind.KW_I64,
         "bool": TokenKind.KW_BOOL,
         "mut": TokenKind.KW_MUT,
         "return": TokenKind.KW_RETURN,
+        "if": TokenKind.KW_IF,
+        "else": TokenKind.KW_ELSE,
+        # bool literals
         "true": TokenKind.TRUE,
         "false": TokenKind.FALSE,
+        # symbols
         "{": TokenKind.LBRACE,
         "}": TokenKind.RBRACE,
-        "==": TokenKind.EQEQ,
-        "!=": TokenKind.NEQ,
         "=": TokenKind.ASSIGN,
         "+": TokenKind.PLUS,
         "-": TokenKind.MINUS,
         "*": TokenKind.MUL,
+        "==": TokenKind.EQEQ,
+        "!=": TokenKind.NOTEQ,
+        "!": TokenKind.NOT,
     }
 
     tokens: List[Token] = []
@@ -70,7 +78,7 @@ def simple_lexer(source_tokens: List[str]) -> List[Token]:
         elif s.isidentifier():
             tokens.append(Token(TokenKind.ID, s))
         else:
-            
+       
             try:
                 int(s)
                 tokens.append(Token(TokenKind.NUMBER, s))
